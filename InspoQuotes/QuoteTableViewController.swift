@@ -7,8 +7,11 @@
 //
 
 import UIKit
+import StoreKit
 
 class QuoteTableViewController: UITableViewController {
+    
+    private let productId = "com.tramalho.InspoQuotes"
     
     var quotesToShow = [
         "Our greatest glory is not in never falling, but in rising every time we fall. — Confucius",
@@ -30,6 +33,7 @@ class QuoteTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        SKPaymentQueue.default().add(self)
     }
 
     // MARK: - Table view data source
@@ -63,11 +67,6 @@ class QuoteTableViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
-    // MARK: - In-App Purchase Methods
-    private func buyPremiunQuotes() {
-        
-    }
-    
 
     
     @IBAction func restorePressed(_ sender: UIBarButtonItem) {
@@ -75,4 +74,32 @@ class QuoteTableViewController: UITableViewController {
     }
 
 
+}
+
+// MARK: - In-App Purchase
+extension QuoteTableViewController: SKPaymentTransactionObserver {
+    
+    private func buyPremiunQuotes() {
+        if SKPaymentQueue.canMakePayments() {
+            
+            let paymentRequest = SKMutablePayment()
+            paymentRequest.productIdentifier = productId
+            SKPaymentQueue.default().add(paymentRequest)
+            
+        } else {
+            print("User can't make payments")
+        }
+    }
+
+    
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+        
+        transactions.forEach { transaction in
+            if transaction.transactionState == .purchased {
+                print("Success")
+            } else if transaction.transactionState == .failed {
+                print("Failed")
+            }
+        }
+    }
 }
