@@ -79,12 +79,16 @@ class QuoteTableViewController: UITableViewController {
 // MARK: - In-App Purchase
 extension QuoteTableViewController: SKPaymentTransactionObserver {
     
+    fileprivate func sKPayment() -> SKPaymentQueue {
+        return SKPaymentQueue.default()
+    }
+    
     private func buyPremiunQuotes() {
         if SKPaymentQueue.canMakePayments() {
             
             let paymentRequest = SKMutablePayment()
             paymentRequest.productIdentifier = productId
-            SKPaymentQueue.default().add(paymentRequest)
+            sKPayment().add(paymentRequest)
             
         } else {
             print("User can't make payments")
@@ -96,9 +100,11 @@ extension QuoteTableViewController: SKPaymentTransactionObserver {
         
         transactions.forEach { transaction in
             if transaction.transactionState == .purchased {
+                sKPayment().finishTransaction(transaction)
                 print("Success")
             } else if transaction.transactionState == .failed {
-                print("Failed")
+                sKPayment().finishTransaction(transaction)
+                print("Failed \(String(describing: transaction.error?.localizedDescription))")
             }
         }
     }
