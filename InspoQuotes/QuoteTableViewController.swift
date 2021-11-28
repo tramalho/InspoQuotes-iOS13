@@ -30,16 +30,27 @@ class QuoteTableViewController: UITableViewController {
         "Your true success in life begins only when you make the commitment to become excellent at what you do. — Brian Tracy",
         "Believe in yourself, take on your challenges, dig deep within yourself to conquer fears. Never let anyone bring you down. You got to keep going. – Chantal Sutherland"
     ]
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         SKPaymentQueue.default().add(self)
+        
+        if isPurchesed() {
+            showPremiumQuotes()
+        }
     }
 
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return quotesToShow.count + 1
+        
+        var count = quotesToShow.count
+        
+        if !isPurchesed() {
+            count += 1
+        }
+        
+        return count
     }
 
     
@@ -49,6 +60,8 @@ class QuoteTableViewController: UITableViewController {
         if indexPath.row < quotesToShow.count {
             cell.textLabel?.text = quotesToShow[indexPath.row]
             cell.textLabel?.numberOfLines = 0
+            cell.textLabel?.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+            cell.accessoryType = .none
         } else {
             cell.textLabel?.text = "Get More Quotes"
             cell.textLabel?.textColor = #colorLiteral(red: 0.0785657838, green: 0.3977849483, blue: 0.4162432551, alpha: 1)
@@ -101,11 +114,21 @@ extension QuoteTableViewController: SKPaymentTransactionObserver {
         transactions.forEach { transaction in
             if transaction.transactionState == .purchased {
                 sKPayment().finishTransaction(transaction)
-                print("Success")
+                showPremiumQuotes()
+                UserDefaults.standard.setValue(true, forKey: productId)
             } else if transaction.transactionState == .failed {
                 sKPayment().finishTransaction(transaction)
                 print("Failed \(String(describing: transaction.error?.localizedDescription))")
             }
         }
+    }
+    
+    private func showPremiumQuotes() {
+        quotesToShow.append(contentsOf: premiumQuotes)
+        tableView.reloadData()
+    }
+    
+    fileprivate func isPurchesed() -> Bool {
+        return UserDefaults.standard.bool(forKey: productId)
     }
 }
